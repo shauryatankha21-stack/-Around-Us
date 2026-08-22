@@ -10,6 +10,7 @@ create table if not exists public.profiles (
   college text,
   city text,
   date_of_birth date not null default '2000-01-01' check (date_of_birth <= current_date - interval '16 years'),
+  gender text not null default 'Any' check (gender in ('Male', 'Female', 'Any')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -43,13 +44,14 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, name, college, city, date_of_birth)
+  insert into public.profiles (id, name, college, city, date_of_birth, gender)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'name', ''),
     new.raw_user_meta_data ->> 'college',
     new.raw_user_meta_data ->> 'city',
-    coalesce((new.raw_user_meta_data ->> 'date_of_birth')::date, '2000-01-01'::date)
+    coalesce((new.raw_user_meta_data ->> 'date_of_birth')::date, '2000-01-01'::date),
+    coalesce(new.raw_user_meta_data ->> 'gender', 'Any')
   )
   on conflict (id) do nothing;
   return new;
@@ -69,6 +71,7 @@ create table if not exists public.games (
   icon text not null default '🎮',
   category text not null check (category in ('sports','games','other')),
   experience_level text not null default 'Any' check (experience_level in ('Any', 'Beginner', 'Intermediate', 'Pro')),
+  gender_preference text not null default 'Any' check (gender_preference in ('Any', 'Male', 'Female')),
   place text not null,
   scope text not null check (scope in ('college','city')),
   starts_at timestamptz not null,
@@ -140,14 +143,16 @@ declare
   v_uid uuid := auth.uid();
   v_limit integer;
   v_min_age integer;
+  v_gender_preference text;
   v_joined integer;
   v_user_dob date;
+  v_user_gender text;
 begin
   if v_uid is null then
     raise exception 'You must be signed in to join a game';
   end if;
 
-  select max_players, min_age into v_limit, v_min_age
+  select max_players, min_age, gender_preference into v_limit, v_min_age, v_gender_preference
   from public.games
   where id = p_game_id;
 
@@ -155,9 +160,15 @@ begin
     raise exception 'Game not found';
   end if;
 
-  select date_of_birth into v_user_dob from public.profiles where id = v_uid;
+  select date_of_birth, gender into v_user_dob, v_user_gender from public.profiles where id = v_uid;
   if v_user_dob is null or (v_user_dob > current_date - make_interval(years => v_min_age)) then
     raise exception 'You do not meet the age requirement for this game';
+  end if;
+
+  if v_gender_preference is not null and v_gender_preference <> 'Any' then
+    if v_user_gender is null or v_user_gender <> v_gender_preference then
+      raise exception 'This game is only open to % participants', v_gender_preference;
+    end if;
   end if;
 
   if exists (

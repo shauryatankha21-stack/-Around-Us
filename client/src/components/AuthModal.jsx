@@ -10,6 +10,7 @@ export default function AuthModal({ isOpen, onClose, toast }) {
   const [college, setCollege] = useState('');
   const [city, setCity] = useState('');
   const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('Any');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -19,6 +20,7 @@ export default function AuthModal({ isOpen, onClose, toast }) {
     setCollege('');
     setCity('');
     setDob('');
+    setGender('Any');
     setEmail('');
     setPassword('');
   }
@@ -70,7 +72,8 @@ export default function AuthModal({ isOpen, onClose, toast }) {
           name: name.trim(), 
           college: college.trim(), 
           city: city.trim(),
-          date_of_birth: dob
+          date_of_birth: dob,
+          gender
         });
         if (result.error) {
           toast(result.error);
@@ -157,6 +160,18 @@ export default function AuthModal({ isOpen, onClose, toast }) {
                 max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
                 onChange={(e) => setDob(e.target.value)}
               />
+            </label>
+            <label>
+              Gender
+              <select
+                id="authGender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+              >
+                <option value="Any">Any / Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
             </label>
           </>
         )}

@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
 
     supabase
       .from('profiles')
-      .select('name, college, city')
+      .select('name, college, city, gender')
       .eq('id', currentUser.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -67,10 +67,10 @@ export function AuthProvider({ children }) {
       });
   }, [currentUser]);
 
-  const signUp = useCallback(async ({ email, password, name, college, city }) => {
+  const signUp = useCallback(async ({ email, password, name, college, city, date_of_birth, gender }) => {
     if (!supabase) {
       // Local mode
-      const localProfile = { id: 'local-user', name, email, college, city };
+      const localProfile = { id: 'local-user', name, email, college, city, date_of_birth, gender: gender || 'Any' };
       const data = readLocal();
       data.profile = localProfile;
       writeLocal(data);
@@ -82,14 +82,14 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, college, city } },
+      options: { data: { name, college, city, date_of_birth, gender: gender || 'Any' } },
     });
 
     if (error) return { error: error.message, needsConfirmation: false };
     if (!data.session) return { error: null, needsConfirmation: true };
 
     setCurrentUser(data.user);
-    setProfile({ name, college, city });
+    setProfile({ name, college, city, gender: gender || 'Any' });
     return { error: null, needsConfirmation: false };
   }, []);
 

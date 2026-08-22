@@ -24,6 +24,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [limit, setLimit] = useState(8);
   const [minAge, setMinAge] = useState(16);
   const [experience, setExperience] = useState('Any');
+  const [genderPreference, setGenderPreference] = useState('Any');
   const [note, setNote] = useState('');
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -52,6 +53,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       maxPlayers: limit,
       minAge,
       experienceLevel: experience,
+      genderPreference,
       note,
     });
 
@@ -65,6 +67,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       setLimit(8);
       setMinAge(16);
       setExperience('Any');
+      setGenderPreference('Any');
       setActivityIdx(0);
       setArea('college');
       // Scroll to discover
@@ -179,6 +182,17 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
             </select>
           </label>
           <label>
+            Gender Preference
+            <select id="genderPreference" value={genderPreference} onChange={(e) => setGenderPreference(e.target.value)}>
+              <option value="Any">Any</option>
+              <option value="Male">Male only</option>
+              <option value="Female">Female only</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="two">
+          <label>
             Minimum Age
             <input
               id="minAge"
@@ -190,19 +204,21 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
               onChange={(e) => setMinAge(Number(e.target.value))}
             />
           </label>
-          <label>
-            Note
-            <textarea
-              id="note"
-              rows="2"
-              placeholder="Beginner friendly, bring your own ball..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            ></textarea>
-          </label>
+          <div style={{ visibility: 'hidden' }}></div>
         </div>
 
-        <button className="btn dark full" id="publishBtn" type="submit">
+        <label className="full">
+          Note
+          <textarea
+            id="note"
+            rows="2"
+            placeholder="Beginner friendly, bring your own ball..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          ></textarea>
+        </label>
+
+        <button className="btn dark full" id="publishBtn" type="submit" style={{ marginTop: '15px' }}>
           Publish activity <span>→</span>
         </button>
       </form>
