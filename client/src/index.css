@@ -131,8 +131,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .brand-logo {
-  width: 54px;
-  height: 24px;
+  width: 78px;
+  height: 32px;
   background-image: url('/logo.png');
   background-size: contain;
   background-position: center;
