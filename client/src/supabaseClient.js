@@ -9,6 +9,9 @@ const hasConfig =
   supabaseAnonKey &&
   !supabaseAnonKey.includes('YOUR_');
 
+console.log('[DEBUG] VITE_SUPABASE_URL =', supabaseUrl ? supabaseUrl.substring(0, 20) + '...' : 'MISSING');
+console.log('[DEBUG] hasConfig =', hasConfig);
+
 /**
  * supabase will be null if the env vars are not configured.
  * Components should check for null and fall back to localStorage mode.
