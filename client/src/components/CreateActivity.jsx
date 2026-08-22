@@ -180,14 +180,15 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
           </label>
           <label>
             Note
-          <textarea
-            id="note"
-            rows="2"
-            placeholder="Beginner friendly, bring your own ball..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          ></textarea>
-        </label>
+            <textarea
+              id="note"
+              rows="2"
+              placeholder="Beginner friendly, bring your own ball..."
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            ></textarea>
+          </label>
+        </div>
 
         <button className="btn dark full" id="publishBtn" type="submit">
           Publish activity <span>→</span>
