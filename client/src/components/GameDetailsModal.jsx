@@ -30,6 +30,8 @@ export default function GameDetailsModal({ isOpen, onClose, game, counts, isMine
         <br />
         ◷ {new Date(game.starts_at).toLocaleString()}
         <br />
+        ✦ {game.experience_level || 'Any'} level
+        <br />
         👥 <b>{joined}/{game.max_players}</b> · {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} left
       </p>
       <p>{game.note || 'Open to new players.'}</p>

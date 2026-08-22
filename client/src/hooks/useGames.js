@@ -236,7 +236,7 @@ export function useGames() {
 
   // Create game
   const createGame = useCallback(
-    async ({ title, icon, categoryValue, place, scopeValue, startsAt, maxPlayers, minAge, note }) => {
+    async ({ title, icon, categoryValue, place, scopeValue, startsAt, maxPlayers, minAge, experienceLevel, note }) => {
       if (!currentUser) {
         return { success: false, message: 'Must be signed in' };
       }
@@ -254,6 +254,8 @@ export function useGames() {
           starts_at: startsAt,
           status: 'upcoming',
           max_players: maxPlayers,
+          min_age: minAge,
+          experience_level: experienceLevel || 'Any',
           note: note || 'Open to new players.',
           players: 1,
           joinedByMe: true,
@@ -277,6 +279,7 @@ export function useGames() {
           status: 'upcoming',
           max_players: maxPlayers,
           min_age: minAge,
+          experience_level: experienceLevel || 'Any',
           note: note || 'Open to new players.',
         })
         .select()

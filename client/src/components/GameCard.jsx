@@ -32,6 +32,7 @@ export default function GameCard({ game, counts, isMine, onJoin, onLeave, onShow
       <h3>{game.title}</h3>
       <div className="meta">⌖ {game.place}</div>
       <div className="meta">◷ {when}</div>
+      <div className="meta">✦ {game.experience_level || 'Any'} level</div>
       <div className="meta">♧ {game.note || 'Open to new players.'}</div>
 
       <div className="spots">

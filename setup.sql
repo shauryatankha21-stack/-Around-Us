@@ -68,6 +68,7 @@ create table if not exists public.games (
   title text not null,
   icon text not null default '🎮',
   category text not null check (category in ('sports','games','other')),
+  experience_level text not null default 'Any' check (experience_level in ('Any', 'Beginner', 'Intermediate', 'Pro')),
   place text not null,
   scope text not null check (scope in ('college','city')),
   starts_at timestamptz not null,

@@ -96,7 +96,7 @@ router.post('/', async (req, res) => {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  const { title, icon, category, place, scope, starts_at, max_players, min_age, note } = req.body;
+  const { title, icon, category, place, scope, starts_at, max_players, min_age, experience_level, note } = req.body;
 
   const { data, error } = await supabaseAdmin
     .from('games')
@@ -111,6 +111,7 @@ router.post('/', async (req, res) => {
       status: 'upcoming',
       max_players,
       min_age: min_age || 16,
+      experience_level: experience_level || 'Any',
       note: note || 'Open to new players.',
     })
     .select()

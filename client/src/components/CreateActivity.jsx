@@ -23,6 +23,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [area, setArea] = useState('college');
   const [limit, setLimit] = useState(8);
   const [minAge, setMinAge] = useState(16);
+  const [experience, setExperience] = useState('Any');
   const [note, setNote] = useState('');
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -50,6 +51,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       startsAt: new Date(`${date}T${time}`).toISOString(),
       maxPlayers: limit,
       minAge,
+      experienceLevel: experience,
       note,
     });
 
@@ -62,6 +64,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       setNote('');
       setLimit(8);
       setMinAge(16);
+      setExperience('Any');
       setActivityIdx(0);
       setArea('college');
       // Scroll to discover
@@ -166,6 +169,15 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         </div>
 
         <div className="two">
+          <label>
+            Experience Level
+            <select id="experience" value={experience} onChange={(e) => setExperience(e.target.value)}>
+              <option value="Any">Any</option>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Pro">Pro</option>
+            </select>
+          </label>
           <label>
             Minimum Age
             <input
