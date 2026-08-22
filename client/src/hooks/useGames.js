@@ -236,7 +236,11 @@ export function useGames() {
 
   // Create game
   const createGame = useCallback(
-    async ({ title, icon, categoryValue, place, scopeValue, startsAt, maxPlayers, note }) => {
+    async ({ title, icon, categoryValue, place, scopeValue, startsAt, maxPlayers, minAge, note }) => {
+      if (!currentUser) {
+        return { success: false, message: 'Must be signed in' };
+      }
+
       if (!supabase) {
         const data = readLocal();
         const g = {
@@ -272,6 +276,7 @@ export function useGames() {
           starts_at: startsAt,
           status: 'upcoming',
           max_players: maxPlayers,
+          min_age: minAge,
           note: note || 'Open to new players.',
         })
         .select()

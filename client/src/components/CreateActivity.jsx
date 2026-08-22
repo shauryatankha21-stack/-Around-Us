@@ -22,6 +22,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [place, setPlace] = useState('');
   const [area, setArea] = useState('college');
   const [limit, setLimit] = useState(8);
+  const [minAge, setMinAge] = useState(16);
   const [note, setNote] = useState('');
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -48,6 +49,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       scopeValue: area,
       startsAt: new Date(`${date}T${time}`).toISOString(),
       maxPlayers: limit,
+      minAge,
       note,
     });
 
@@ -59,6 +61,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       setPlace('');
       setNote('');
       setLimit(8);
+      setMinAge(16);
       setActivityIdx(0);
       setArea('college');
       // Scroll to discover
@@ -162,8 +165,21 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
           </label>
         </div>
 
-        <label>
-          Note
+        <div className="two">
+          <label>
+            Minimum Age
+            <input
+              id="minAge"
+              type="number"
+              min="16"
+              max="99"
+              required
+              value={minAge}
+              onChange={(e) => setMinAge(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            Note
           <textarea
             id="note"
             rows="2"

@@ -9,6 +9,7 @@ export default function AuthModal({ isOpen, onClose, toast }) {
   const [name, setName] = useState('');
   const [college, setCollege] = useState('');
   const [city, setCity] = useState('');
+  const [dob, setDob] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -17,6 +18,7 @@ export default function AuthModal({ isOpen, onClose, toast }) {
     setName('');
     setCollege('');
     setCity('');
+    setDob('');
     setEmail('');
     setPassword('');
   }
@@ -40,11 +42,36 @@ export default function AuthModal({ isOpen, onClose, toast }) {
       return;
     }
 
+    if (isSignUp) {
+      if (!dob) {
+        toast('Please enter your date of birth.');
+        return;
+      }
+      const birthDate = new Date(dob);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        toast('You must be at least 16 years old to join.');
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     try {
       if (isSignUp) {
-        const result = await signUp({ email: email.trim(), password, name: name.trim(), college: college.trim(), city: city.trim() });
+        const result = await signUp({ 
+          email: email.trim(), 
+          password, 
+          name: name.trim(), 
+          college: college.trim(), 
+          city: city.trim(),
+          date_of_birth: dob
+        });
         if (result.error) {
           toast(result.error);
         } else if (result.needsConfirmation) {
@@ -118,6 +145,17 @@ export default function AuthModal({ isOpen, onClose, toast }) {
                 placeholder="Your city"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
+              />
+            </label>
+            <label>
+              Date of Birth
+              <input
+                id="authDob"
+                type="date"
+                required
+                value={dob}
+                max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+                onChange={(e) => setDob(e.target.value)}
               />
             </label>
           </>

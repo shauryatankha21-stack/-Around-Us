@@ -9,6 +9,7 @@ create table if not exists public.profiles (
   name text not null default '',
   college text,
   city text,
+  date_of_birth date not null default '2000-01-01' check (date_of_birth <= current_date - interval '16 years'),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -42,12 +43,13 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, name, college, city)
+  insert into public.profiles (id, name, college, city, date_of_birth)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'name', ''),
     new.raw_user_meta_data ->> 'college',
-    new.raw_user_meta_data ->> 'city'
+    new.raw_user_meta_data ->> 'city',
+    coalesce((new.raw_user_meta_data ->> 'date_of_birth')::date, '2000-01-01'::date)
   )
   on conflict (id) do nothing;
   return new;
@@ -71,6 +73,7 @@ create table if not exists public.games (
   starts_at timestamptz not null,
   status text not null default 'upcoming' check (status in ('live','upcoming')),
   max_players integer not null check (max_players between 2 and 50),
+  min_age integer not null default 16 check (min_age >= 16),
   note text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -135,18 +138,25 @@ as $$
 declare
   v_uid uuid := auth.uid();
   v_limit integer;
+  v_min_age integer;
   v_joined integer;
+  v_user_dob date;
 begin
   if v_uid is null then
     raise exception 'You must be signed in to join a game';
   end if;
 
-  select max_players into v_limit
+  select max_players, min_age into v_limit, v_min_age
   from public.games
   where id = p_game_id;
 
   if v_limit is null then
     raise exception 'Game not found';
+  end if;
+
+  select date_of_birth into v_user_dob from public.profiles where id = v_uid;
+  if v_user_dob is null or (v_user_dob > current_date - make_interval(years => v_min_age)) then
+    raise exception 'You do not meet the age requirement for this game';
   end if;
 
   if exists (
