@@ -11,7 +11,7 @@ export default function Header({ onProfileClick }) {
   return (
     <header className="site-header">
       <a className="brand" href="#top">
-        <span className="spark">✦</span>
+        <div className="brand-logo" aria-hidden="true"></div>
         <span>Around Us</span>
       </a>
 

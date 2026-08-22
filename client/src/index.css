@@ -130,16 +130,23 @@ a { color: inherit; text-decoration: none; }
   color: var(--ink);
 }
 
-.spark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  font-size: 18px;
-  box-shadow: var(--spark-shadow);
+.brand-logo {
+  width: 44px;
+  height: 28px;
+  background-image: url('/logo.jpg');
+  background-size: 100% auto;
+  background-position: top center;
+  background-repeat: no-repeat;
+  transition: all 0.3s;
+}
+
+[data-theme="dark"] .brand-logo {
+  mix-blend-mode: screen;
+}
+
+[data-theme="light"] .brand-logo {
+  filter: invert(1);
+  mix-blend-mode: multiply;
 }
 
 .site-header nav {

@@ -1,9 +1,9 @@
 export default function Footer() {
   return (
     <footer>
-      <span className="brand">
-        <span className="spark">✦</span> Around Us
-      </span>
+      <div className="brand">
+        <div className="brand-logo" aria-hidden="true"></div> Around Us
+      </div>
       <span>Play more. Meet more people.</span>
     </footer>
   );
