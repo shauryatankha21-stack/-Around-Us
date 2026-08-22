@@ -1,6 +1,8 @@
 import Modal from './Modal';
 
 export default function GameDetailsModal({ isOpen, onClose, game, counts, isMine, onJoin, onLeave }) {
+  console.log('GameDetailsModal game data:', game);
+
   if (!game) return null;
 
   const joined = counts.get(game.id) || 0;
@@ -31,6 +33,18 @@ export default function GameDetailsModal({ isOpen, onClose, game, counts, isMine
         👥 <b>{joined}/{game.max_players}</b> · {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} left
       </p>
       <p>{game.note || 'Open to new players.'}</p>
+
+      {/* Participants list */}
+      {game.participants && game.participants.length > 0 && (
+        <div className="participants">
+          <h4>Players</h4>
+          <ul>
+            {game.participants.map((p, i) => (
+              <li key={i}>{p.name} ({p.gender})</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {isMine ? (
         <button className="main" type="button" id="detailLeave" onClick={handleLeave}>

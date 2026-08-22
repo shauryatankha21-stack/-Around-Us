@@ -22,6 +22,7 @@ export default function Discover({
   onJoin,
   onLeave,
   onCreateClick,
+  onShowDetails,
 }) {
   return (
     <section className="discover" id="discover">
@@ -78,6 +79,7 @@ export default function Discover({
               isMine={myGames.has(game.id)}
               onJoin={onJoin}
               onLeave={onLeave}
+              onShowDetails={onShowDetails}
             />
           ))
         ) : (

@@ -16,6 +16,19 @@ function writeLocal(data) {
   localStorage.setItem(STORE_KEY, JSON.stringify(data));
 }
 
+// Utility to generate random participant names and genders
+const NAMES = ['Alex', 'Sam', 'Jordan', 'Taylor', 'Chris', 'Pat', 'Morgan', 'Casey', 'Riley', 'Jamie', 'Alex', 'Sam', 'Jordan', 'Taylor'];
+const GENDERS = ['M', 'F'];
+function generateParticipants(count) {
+  const participants = [];
+  for (let i = 0; i < count; i++) {
+    const name = NAMES[Math.floor(Math.random() * NAMES.length)];
+    const gender = GENDERS[Math.floor(Math.random() * GENDERS.length)];
+    participants.push({ name, gender });
+  }
+  return participants;
+}
+
 const SEED_GAMES = [
   {
     id: 'demo-basketball',
@@ -30,6 +43,7 @@ const SEED_GAMES = [
     max_players: 12,
     note: 'Mixed level welcome.',
     players: 8,
+    participants: generateParticipants(8),
     joinedByMe: false,
   },
   {
@@ -45,6 +59,7 @@ const SEED_GAMES = [
     max_players: 14,
     note: 'Need a few more players.',
     players: 9,
+    participants: generateParticipants(9),
     joinedByMe: false,
   },
   {
@@ -60,6 +75,7 @@ const SEED_GAMES = [
     max_players: 4,
     note: 'Quick game, all levels.',
     players: 2,
+    participants: generateParticipants(2),
     joinedByMe: false,
   },
 ];
@@ -109,7 +125,16 @@ export function useGames() {
 
       if (ge || ce) return;
 
-      setGames(gs || []);
+      // Ensure each game has a participants array (used for the UI)
+      const gamesWithParticipants = (gs || []).map((g) => {
+        if (!g.participants) {
+          // Use the existing player count (or 0) to generate placeholder participants
+          const count = g.players || 0;
+          return { ...g, participants: generateParticipants(count) };
+        }
+        return g;
+      });
+      setGames(gamesWithParticipants);
       setCounts(new Map((cs || []).map((x) => [x.game_id, Number(x.joined_count)])));
 
       if (currentUser) {

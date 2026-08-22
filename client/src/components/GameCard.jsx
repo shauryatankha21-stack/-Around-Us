@@ -4,7 +4,7 @@ function esc(value) {
   );
 }
 
-export default function GameCard({ game, counts, isMine, onJoin, onLeave }) {
+export default function GameCard({ game, counts, isMine, onJoin, onLeave, onShowDetails }) {
   const joined = counts.get(game.id) || 0;
   const spotsLeft = Math.max(0, game.max_players - joined);
   const full = !isMine && spotsLeft === 0;
@@ -20,7 +20,8 @@ export default function GameCard({ game, counts, isMine, onJoin, onLeave }) {
   });
 
   return (
-    <article className="card">
+    <article className="card" onClick={() => onShowDetails && onShowDetails(game)} style={{ cursor: onShowDetails ? 'pointer' : 'default' }}>
+
       <div className="card-head">
         <span className="game-icon">{game.icon}</span>
         <span className={`badge ${isLive ? 'live' : ''}`}>
@@ -45,7 +46,7 @@ export default function GameCard({ game, counts, isMine, onJoin, onLeave }) {
       </div>
 
       {isMine ? (
-        <button className="join leave" type="button" onClick={() => onLeave(game.id)}>
+        <button className="join leave" type="button" onClick={(e) => { e.stopPropagation(); onLeave(game.id); }}>
           ↩ Leave game
         </button>
       ) : (
@@ -53,8 +54,7 @@ export default function GameCard({ game, counts, isMine, onJoin, onLeave }) {
           className="join"
           type="button"
           disabled={full}
-          onClick={() => onJoin(game.id)}
-        >
+          onClick={(e) => { e.stopPropagation(); onJoin(game.id); }}>
           {full ? 'Game full' : 'Join game'}
         </button>
       )}

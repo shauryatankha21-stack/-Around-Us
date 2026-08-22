@@ -132,6 +132,7 @@ export default function App() {
           onJoin={handleJoin}
           onLeave={handleLeave}
           onCreateClick={handleCreateClick}
+          onShowDetails={setDetailsGame}
         />
 
         <HowItWorks />
