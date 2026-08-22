@@ -28,13 +28,11 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
-}
+// Frontend is deployed separately on Vercel.
+// This catch-all returns a helpful JSON message for any non-API route.
+app.get('*', (_req, res) => {
+  res.status(404).json({ error: 'Not found. API routes start with /api/' });
+});
 
 app.listen(PORT, () => {
   console.log(`✦ Around Us server running on http://localhost:${PORT}`);
