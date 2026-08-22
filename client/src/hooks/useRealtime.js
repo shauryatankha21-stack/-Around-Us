@@ -11,13 +11,17 @@ export function useRealtime(onUpdate) {
 
     const channel = supabase
       .channel('around-us-games')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, (payload) => {
+        console.log('Realtime event on games:', payload);
         onUpdate();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_players' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_players' }, (payload) => {
+        console.log('Realtime event on game_players:', payload);
         onUpdate();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
