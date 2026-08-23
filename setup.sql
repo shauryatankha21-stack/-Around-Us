@@ -162,7 +162,8 @@ begin
   end if;
 
   select date_of_birth, gender into v_user_dob, v_user_gender from public.profiles where id = v_uid;
-  if v_user_dob is null or (v_user_dob > current_date - make_interval(years => v_min_age)) then
+  v_user_dob := coalesce(v_user_dob, '2000-01-01'::date);
+  if (v_user_dob > current_date - make_interval(years => v_min_age)) then
     raise exception 'You do not meet the age requirement for this game';
   end if;
 
