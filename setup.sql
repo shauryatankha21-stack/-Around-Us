@@ -133,6 +133,7 @@ to authenticated
 using ((select auth.uid()) = user_id);
 
 -- Atomic join: checks capacity and inserts in one database transaction.
+drop function if exists public.join_game(uuid);
 create or replace function public.join_game(p_game_id uuid)
 returns boolean
 language plpgsql
