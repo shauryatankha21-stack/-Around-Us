@@ -4,12 +4,16 @@ import { useAuth } from '../context/AuthContext';
 const ACTIVITIES = [
   { label: '🏀 Basketball', title: 'Basketball', icon: '🏀', category: 'sports' },
   { label: '⚽ Football', title: 'Football', icon: '⚽', category: 'sports' },
+  { label: '🏏 Cricket', title: 'Cricket', icon: '🏏', category: 'sports' },
   { label: '🏸 Badminton', title: 'Badminton', icon: '🏸', category: 'sports' },
-  { label: '🏐 Volleyball', title: 'Volleyball', icon: '🏐', category: 'sports' },
+  { label: '🏓 Table Tennis', title: 'Table Tennis', icon: '🏓', category: 'sports' },
   { label: '🎾 Tennis', title: 'Tennis', icon: '🎾', category: 'sports' },
+  { label: '🎾 Pickle Ball', title: 'Pickle Ball', icon: '🎾', category: 'sports' },
+  { label: '🏐 Volleyball', title: 'Volleyball', icon: '🏐', category: 'sports' },
   { label: '🃏 UNO', title: 'UNO', icon: '🃏', category: 'games' },
   { label: '♟️ Chess', title: 'Chess', icon: '♟️', category: 'games' },
   { label: '🎮 Gaming', title: 'Gaming', icon: '🎮', category: 'games' },
+  { label: '✨ Others', title: 'Others', icon: '✨', category: 'other' },
 ];
 
 export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
