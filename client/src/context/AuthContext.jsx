@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
 
     supabase
       .from('profiles')
-      .select('name, college, city, gender')
+      .select('name, college, city, date_of_birth, gender')
       .eq('id', currentUser.id)
       .maybeSingle()
       .then(({ data }) => {
