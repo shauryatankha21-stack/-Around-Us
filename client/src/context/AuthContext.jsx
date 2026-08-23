@@ -123,6 +123,57 @@ export function AuthProvider({ children }) {
     setProfile(null);
   }, []);
 
+  const updateProfile = useCallback(
+    async ({ name, college, city, date_of_birth, gender, password }) => {
+      if (!currentUser) return { error: 'Not signed in' };
+
+      if (!supabase) {
+        // Local mode
+        const localProfile = { ...profile, name, college, city, date_of_birth, gender };
+        const data = readLocal();
+        data.profile = localProfile;
+        writeLocal(data);
+        setProfile(localProfile);
+        return { error: null };
+      }
+
+      // Update database profile
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .update({
+          name: name.trim(),
+          college: college?.trim() || null,
+          city: city?.trim() || null,
+          date_of_birth,
+          gender: gender || 'Any',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', currentUser.id);
+
+      if (dbError) return { error: dbError.message };
+
+      // Optional password update
+      if (password && password.trim().length >= 6) {
+        const { error: authError } = await supabase.auth.updateUser({
+          password: password.trim(),
+          data: { name: name.trim(), college: college?.trim(), city: city?.trim(), date_of_birth, gender: gender || 'Any' },
+        });
+        if (authError) return { error: `Profile updated, but password change failed: ${authError.message}` };
+      }
+
+      setProfile({
+        name: name.trim(),
+        college: college?.trim(),
+        city: city?.trim(),
+        date_of_birth,
+        gender: gender || 'Any',
+      });
+
+      return { error: null };
+    },
+    [currentUser, profile]
+  );
+
   const value = {
     currentUser,
     profile,
@@ -130,6 +181,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    updateProfile,
     isAuthenticated: !!currentUser,
   };
 
