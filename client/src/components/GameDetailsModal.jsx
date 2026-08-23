@@ -32,6 +32,8 @@ export default function GameDetailsModal({ isOpen, onClose, game, counts, isMine
         <br />
         ✦ {game.experience_level || 'Any'} level
         <br />
+        🎂 Min Age: {game.min_age || 16}+
+        <br />
         ⚥ Gender: {(game.gender_preference || 'Any') === 'Any' ? 'Co-ed / Any' : `${game.gender_preference} only`}
         <br />
         👥 <b>{joined}/{game.max_players}</b> · {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} left

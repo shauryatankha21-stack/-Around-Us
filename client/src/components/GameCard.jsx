@@ -33,6 +33,7 @@ export default function GameCard({ game, counts, isMine, onJoin, onLeave, onShow
       <div className="meta">⌖ {game.place}</div>
       <div className="meta">◷ {when}</div>
       <div className="meta">✦ {game.experience_level || 'Any'} level</div>
+      <div className="meta">🎂 Min Age: {game.min_age || 16}+</div>
       <div className="meta">⚥ Gender: {(game.gender_preference || 'Any') === 'Any' ? 'Co-ed / Any' : `${game.gender_preference} only`}</div>
       <div className="meta">♧ {game.note || 'Open to new players.'}</div>
 
