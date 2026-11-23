@@ -11,10 +11,20 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? false // In production, serve from same origin
-    : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -28,11 +38,22 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Frontend is deployed separately on Vercel.
-// This catch-all returns a helpful JSON message for any non-API route.
-app.get('*', (_req, res) => {
-  res.status(404).json({ error: 'Not found. API routes start with /api/' });
-});
+// Serve frontend static files if built
+const fs = require('fs');
+const clientDistPath = path.resolve(__dirname, '../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ error: 'Not found. API routes start with /api/' });
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  app.get('*', (_req, res) => {
+    res.status(404).json({ error: 'Not found. API routes start with /api/' });
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`✦ Around Us server running on http://localhost:${PORT}`);

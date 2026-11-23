@@ -88,6 +88,19 @@ function seedLocal() {
   }
 }
 
+export function getGameStatus(game) {
+  if (!game) return 'upcoming';
+  if (game.status === 'live') return 'live';
+  if (!game.starts_at) return game.status || 'upcoming';
+  const start = new Date(game.starts_at).getTime();
+  const now = Date.now();
+  // If started in the last 2 hours or starts within 5 mins
+  if (start <= now && now - start < 2 * 60 * 60 * 1000) {
+    return 'live';
+  }
+  return 'upcoming';
+}
+
 export function useGames() {
   const { currentUser } = useAuth();
 
@@ -110,9 +123,14 @@ export function useGames() {
       // Local mode
       seedLocal();
       const data = readLocal();
-      setGames(data.games || []);
-      setCounts(new Map((data.games || []).map((g) => [g.id, g.players || 0])));
-      setMyGames(new Set((data.games || []).filter((g) => g.joinedByMe).map((g) => g.id)));
+      const localGames = (data.games || []).map((g) => ({
+        ...g,
+        status: getGameStatus(g),
+        participants: g.participants || generateParticipants(g.players || 0),
+      }));
+      setGames(localGames);
+      setCounts(new Map(localGames.map((g) => [g.id, g.players || 0])));
+      setMyGames(new Set(localGames.filter((g) => g.joinedByMe).map((g) => g.id)));
       return;
     }
 
@@ -123,19 +141,47 @@ export function useGames() {
         supabase.rpc('get_game_counts'),
       ]);
 
-      if (ge || ce) return;
+      if (ge || ce) {
+        console.error('Error loading games/counts:', ge || ce);
+        return;
+      }
 
-      // Ensure each game has a participants array (used for the UI)
-      const gamesWithParticipants = (gs || []).map((g) => {
-        if (!g.participants) {
-          // Use the existing player count (or 0) to generate placeholder participants
-          const count = g.players || 0;
-          return { ...g, participants: generateParticipants(count) };
+      const countMap = new Map((cs || []).map((x) => [x.game_id, Number(x.joined_count)]));
+
+      // Attempt to load real participants if permitted
+      let realParticipantsByGame = new Map();
+      try {
+        const { data: playersData } = await supabase
+          .from('game_players')
+          .select('game_id, user_id, profiles(name, gender)');
+        if (playersData) {
+          playersData.forEach((p) => {
+            if (!realParticipantsByGame.has(p.game_id)) realParticipantsByGame.set(p.game_id, []);
+            realParticipantsByGame.get(p.game_id).push({
+              name: p.profiles?.name || 'Player',
+              gender: p.profiles?.gender === 'Male' ? 'M' : p.profiles?.gender === 'Female' ? 'F' : 'Co-ed',
+            });
+          });
         }
-        return g;
+      } catch (err) {
+        // Fallback to placeholder participants
+      }
+
+      // Ensure each game has a participants array
+      const gamesWithParticipants = (gs || []).map((g) => {
+        const count = countMap.get(g.id) || g.players || 0;
+        const realPlayers = realParticipantsByGame.get(g.id);
+        const effectiveStatus = getGameStatus(g);
+        return {
+          ...g,
+          status: effectiveStatus,
+          players: count,
+          participants: realPlayers && realPlayers.length > 0 ? realPlayers : generateParticipants(count),
+        };
       });
+
       setGames(gamesWithParticipants);
-      setCounts(new Map((cs || []).map((x) => [x.game_id, Number(x.joined_count)])));
+      setCounts(countMap);
 
       if (currentUser) {
         const { data } = await supabase
@@ -156,16 +202,19 @@ export function useGames() {
     return games.filter((g) => {
       if (category !== 'all' && g.category !== category) return false;
       if (scope !== 'all' && g.scope !== scope) return false;
-      if (time !== 'all' && g.status !== time) return false;
-      if (query && !`${g.title} ${g.place} ${g.note}`.toLowerCase().includes(query.toLowerCase()))
-        return false;
+      const effectiveStatus = getGameStatus(g);
+      if (time !== 'all' && effectiveStatus !== time) return false;
+      if (query) {
+        const searchPool = [g.title, g.place, g.note, g.category, g.experience_level].filter(Boolean).join(' ').toLowerCase();
+        if (!searchPool.includes(query.trim().toLowerCase())) return false;
+      }
       return true;
     });
   }, [games, category, scope, time, query]);
 
   // Computed stats
   const stats = useMemo(() => {
-    const liveGames = games.filter((g) => g.status === 'live').length;
+    const liveGames = games.filter((g) => getGameStatus(g) === 'live').length;
     const spotsAvailable = games.reduce(
       (n, g) => n + Math.max(0, g.max_players - (counts.get(g.id) || 0)),
       0
@@ -175,9 +224,14 @@ export function useGames() {
     return { liveGames, spotsAvailable, joined, hosted };
   }, [games, counts, myGames, currentUser]);
 
-  // Hero game
+  // Hero game — prioritize live games, then basketball, then first game
   const heroGame = useMemo(() => {
-    return games.find((g) => g.title.toLowerCase() === 'basketball') || games[0] || null;
+    if (!games.length) return null;
+    return (
+      games.find((g) => getGameStatus(g) === 'live') ||
+      games.find((g) => g.title?.toLowerCase() === 'basketball') ||
+      games[0]
+    );
   }, [games]);
 
   // Join game
@@ -186,9 +240,16 @@ export function useGames() {
       if (!supabase) {
         const data = readLocal();
         const g = data.games.find((x) => x.id === id);
-        if (!g || g.players >= g.max_players) return 'This game is full.';
-        g.players++;
+        if (!g || g.players >= g.max_players) {
+          return { success: false, message: 'This game is full.' };
+        }
+        g.players = (g.players || 0) + 1;
         g.joinedByMe = true;
+        if (!g.participants) g.participants = [];
+        g.participants.push({
+          name: currentUser?.user_metadata?.name || 'You',
+          gender: currentUser?.user_metadata?.gender === 'Male' ? 'M' : currentUser?.user_metadata?.gender === 'Female' ? 'F' : 'Co-ed',
+        });
         writeLocal(data);
         refresh();
         const spots = Math.max(0, g.max_players - g.players);
@@ -198,13 +259,21 @@ export function useGames() {
       const { error } = await supabase.rpc('join_game', { p_game_id: id });
       if (error) return { success: false, message: error.message };
 
+      // Optimistic update
+      setMyGames((prev) => new Set([...prev, id]));
+      setCounts((prev) => {
+        const next = new Map(prev);
+        next.set(id, (next.get(id) || 0) + 1);
+        return next;
+      });
+
       refresh();
       const g = games.find((x) => x.id === id);
       const joined = (counts.get(id) || 0) + 1;
       const spots = Math.max(0, (g?.max_players || 0) - joined);
       return { success: true, message: `Joined ${g?.title || 'game'} · ${spots} spot${spots === 1 ? '' : 's'} left` };
     },
-    [games, counts, refresh]
+    [currentUser, games, counts, refresh]
   );
 
   // Leave game
@@ -214,8 +283,11 @@ export function useGames() {
         const data = readLocal();
         const g = data.games.find((x) => x.id === id);
         if (!g) return { success: false, message: 'Game not found.' };
-        g.players = Math.max(0, g.players - 1);
+        g.players = Math.max(0, (g.players || 1) - 1);
         g.joinedByMe = false;
+        if (g.participants && g.participants.length > 0) {
+          g.participants.pop();
+        }
         writeLocal(data);
         refresh();
         const spots = Math.max(0, g.max_players - g.players);
@@ -225,6 +297,18 @@ export function useGames() {
       const { error } = await supabase.rpc('leave_game', { p_game_id: id });
       if (error) return { success: false, message: error.message };
 
+      // Optimistic update
+      setMyGames((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      setCounts((prev) => {
+        const next = new Map(prev);
+        next.set(id, Math.max(0, (next.get(id) || 0) - 1));
+        return next;
+      });
+
       refresh();
       const g = games.find((x) => x.id === id);
       const left = Math.max(0, (counts.get(id) || 0) - 1);
@@ -232,6 +316,35 @@ export function useGames() {
       return { success: true, message: `Left ${g?.title || 'game'} · ${spots} spot${spots === 1 ? '' : 's'} left` };
     },
     [games, counts, refresh]
+  );
+
+  // Delete / Cancel game (Host only)
+  const deleteGame = useCallback(
+    async (id) => {
+      if (!currentUser) return { success: false, message: 'Must be signed in.' };
+
+      if (!supabase) {
+        const data = readLocal();
+        data.games = (data.games || []).filter((x) => x.id !== id);
+        writeLocal(data);
+        refresh();
+        return { success: true, message: 'Activity cancelled.' };
+      }
+
+      const { error } = await supabase.from('games').delete().eq('id', id);
+      if (error) return { success: false, message: error.message };
+
+      // Optimistic delete
+      setGames((prev) => prev.filter((g) => g.id !== id));
+      setMyGames((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      refresh();
+      return { success: true, message: 'Activity cancelled.' };
+    },
+    [currentUser, refresh]
   );
 
   // Create game
@@ -252,7 +365,7 @@ export function useGames() {
           place,
           scope: scopeValue,
           starts_at: startsAt,
-          status: 'upcoming',
+          status: getGameStatus({ starts_at: startsAt }),
           max_players: maxPlayers,
           min_age: minAge,
           experience_level: experienceLevel || 'Any',
@@ -260,6 +373,10 @@ export function useGames() {
           note: note || 'Open to new players.',
           players: 1,
           joinedByMe: true,
+          participants: [{
+            name: currentUser?.user_metadata?.name || 'You (Host)',
+            gender: currentUser?.user_metadata?.gender === 'Male' ? 'M' : currentUser?.user_metadata?.gender === 'Female' ? 'F' : 'Co-ed',
+          }],
         };
         data.games.push(g);
         writeLocal(data);
@@ -291,7 +408,8 @@ export function useGames() {
 
       const joinResult = await supabase.rpc('join_game', { p_game_id: data.id });
       if (joinResult.error) {
-        return { success: true, message: `Published, but host could not join: ${joinResult.error.message}` };
+        refresh();
+        return { success: true, message: `Published! (Host could not auto-join: ${joinResult.error.message})` };
       }
 
       refresh();
@@ -317,6 +435,7 @@ export function useGames() {
     setQuery,
     joinGame,
     leaveGame,
+    deleteGame,
     createGame,
     refresh,
   };

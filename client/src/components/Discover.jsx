@@ -11,6 +11,7 @@ export default function Discover({
   filteredGames,
   counts,
   myGames,
+  currentUser,
   category,
   setCategory,
   scope,
@@ -21,6 +22,7 @@ export default function Discover({
   setQuery,
   onJoin,
   onLeave,
+  onDelete,
   onCreateClick,
   onShowDetails,
 }) {
@@ -77,8 +79,10 @@ export default function Discover({
               game={game}
               counts={counts}
               isMine={myGames.has(game.id)}
+              isHost={currentUser && game.host_id === currentUser.id}
               onJoin={onJoin}
               onLeave={onLeave}
+              onDelete={onDelete}
               onShowDetails={onShowDetails}
             />
           ))

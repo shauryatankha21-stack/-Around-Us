@@ -50,7 +50,7 @@ begin
     coalesce(new.raw_user_meta_data ->> 'name', ''),
     new.raw_user_meta_data ->> 'college',
     new.raw_user_meta_data ->> 'city',
-    coalesce((new.raw_user_meta_data ->> 'date_of_birth')::date, '2000-01-01'::date),
+    coalesce(nullif(new.raw_user_meta_data ->> 'date_of_birth', '')::date, '2000-01-01'::date),
     coalesce(new.raw_user_meta_data ->> 'gender', 'Any')
   )
   on conflict (id) do nothing;
@@ -121,10 +121,11 @@ create table if not exists public.game_players (
 alter table public.game_players enable row level security;
 
 drop policy if exists "Users can see their own participation" on public.game_players;
-create policy "Users can see their own participation"
+drop policy if exists "Anyone can see game participants" on public.game_players;
+create policy "Anyone can see game participants"
 on public.game_players for select
-to authenticated
-using ((select auth.uid()) = user_id);
+to anon, authenticated
+using (true);
 
 drop policy if exists "Users can leave their own games" on public.game_players;
 create policy "Users can leave their own games"
@@ -232,7 +233,8 @@ grant execute on function public.get_game_counts() to anon, authenticated;
 grant select on public.games to anon, authenticated;
 grant select on public.profiles to anon, authenticated;
 grant insert, update on public.profiles to authenticated;
-grant select, delete on public.game_players to authenticated;
+grant select on public.game_players to anon, authenticated;
+grant delete on public.game_players to authenticated;
 
 -- Enable realtime for the tables used by the app.
 alter table public.games replica identity full;

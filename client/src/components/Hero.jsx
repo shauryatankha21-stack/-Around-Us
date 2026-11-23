@@ -3,6 +3,17 @@ export default function Hero({ heroGame, counts, onCreateClick, onDetailsClick }
   const maxPlayers = heroGame?.max_players || 12;
   const spotsLeft = Math.max(0, maxPlayers - joined);
   const progress = Math.min(100, (joined / maxPlayers) * 100);
+  const isLive = heroGame ? heroGame.status === 'live' : true;
+
+  let whenText = 'Starting now';
+  if (heroGame?.starts_at) {
+    try {
+      const d = new Date(heroGame.starts_at);
+      whenText = isLive ? 'Starting now' : d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch {
+      whenText = 'Upcoming';
+    }
+  }
 
   return (
     <section className="hero">
@@ -45,12 +56,14 @@ export default function Hero({ heroGame, counts, onCreateClick, onDetailsClick }
 
         <div className="spotlight">
           <div className="spot-top">
-            <span className="live-tag">● LIVE</span>
-            <span>2.1 km</span>
+            <span className={`live-tag ${isLive ? '' : 'upcoming'}`}>
+              {isLive ? '● LIVE' : 'UPCOMING'}
+            </span>
+            <span>{heroGame?.scope === 'city' ? 'City' : 'College'}</span>
           </div>
-          <div className="big-icon">🏀</div>
-          <h3>Basketball</h3>
-          <p>College Court · Starting now</p>
+          <div className="big-icon">{heroGame?.icon || '🏀'}</div>
+          <h3>{heroGame?.title || 'Basketball'}</h3>
+          <p>{heroGame ? `${heroGame.place} · ${whenText}` : 'College Court · Starting now'}</p>
           <div className="numbers">
             <strong id="heroPlayers">
               {joined}/{maxPlayers}

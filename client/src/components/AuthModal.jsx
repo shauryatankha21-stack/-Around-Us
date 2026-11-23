@@ -108,10 +108,10 @@ export default function AuthModal({ isOpen, onClose, toast }) {
 
       {isSignUp && (
         <div className="profile-card">
-          <div className="profile-avatar">A</div>
+          <div className="profile-avatar">{(name.trim()[0] || 'A').toUpperCase()}</div>
           <div>
-            <strong>Your name appears here</strong>
-            <span>Shown on your profile and hosted games.</span>
+            <strong>{name.trim() || 'Your name appears here'}</strong>
+            <span>{college.trim() ? college.trim() : 'Shown on your profile and hosted games.'}</span>
           </div>
         </div>
       )}

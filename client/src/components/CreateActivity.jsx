@@ -30,14 +30,42 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [experience, setExperience] = useState('Any');
   const [genderPreference, setGenderPreference] = useState('Any');
   const [note, setNote] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const localYear = now.getFullYear();
+  const localMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const localDay = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${localYear}-${localMonth}-${localDay}`;
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!date || !time || !place || limit < 2) {
+    if (!date || !time || !place.trim()) {
       toast('Fill in all required fields.');
+      return;
+    }
+
+    if (limit < 2 || limit > 50) {
+      toast('Player limit must be between 2 and 50.');
+      return;
+    }
+
+    if (minAge < 16) {
+      toast('Minimum age must be at least 16.');
+      return;
+    }
+
+    const [year, month, day] = date.split('-').map(Number);
+    const [hours, minutes] = time.split(':').map(Number);
+    const scheduledDate = new Date(year, month - 1, day, hours, minutes);
+    if (isNaN(scheduledDate.getTime())) {
+      toast('Please enter a valid date and time.');
+      return;
+    }
+
+    if (scheduledDate.getTime() < Date.now() - 30 * 60 * 1000) {
+      toast('Activity start time cannot be in the past.');
       return;
     }
 
@@ -46,38 +74,43 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
       return;
     }
 
-    const activity = ACTIVITIES[activityIdx];
-    const result = await onCreateGame({
-      title: activity.title,
-      icon: activity.icon,
-      categoryValue: activity.category,
-      place,
-      scopeValue: area,
-      startsAt: new Date(`${date}T${time}`).toISOString(),
-      maxPlayers: limit,
-      minAge,
-      experienceLevel: experience,
-      genderPreference,
-      note,
-    });
+    setSubmitting(true);
+    try {
+      const activity = ACTIVITIES[activityIdx];
+      const result = await onCreateGame({
+        title: activity.title,
+        icon: activity.icon,
+        categoryValue: activity.category,
+        place: place.trim(),
+        scopeValue: area,
+        startsAt: scheduledDate.toISOString(),
+        maxPlayers: limit,
+        minAge,
+        experienceLevel: experience,
+        genderPreference,
+        note: note.trim(),
+      });
 
-    if (result.success) {
-      toast(result.message);
-      formRef.current?.reset();
-      setDate('');
-      setTime('');
-      setPlace('');
-      setNote('');
-      setLimit(8);
-      setMinAge(16);
-      setExperience('Any');
-      setGenderPreference('Any');
-      setActivityIdx(0);
-      setArea('college');
-      // Scroll to discover
-      document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      toast(result.message);
+      if (result.success) {
+        toast(result.message);
+        formRef.current?.reset();
+        setDate('');
+        setTime('');
+        setPlace('');
+        setNote('');
+        setLimit(8);
+        setMinAge(16);
+        setExperience('Any');
+        setGenderPreference('Any');
+        setActivityIdx(0);
+        setArea('college');
+        // Scroll to discover
+        document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        toast(result.message);
+      }
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -222,8 +255,8 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
           ></textarea>
         </label>
 
-        <button className="btn dark full" id="publishBtn" type="submit" style={{ marginTop: '15px' }}>
-          Publish activity <span>→</span>
+        <button className="btn dark full" id="publishBtn" type="submit" disabled={submitting} style={{ marginTop: '15px' }}>
+          {submitting ? 'Publishing...' : 'Publish activity'} <span>→</span>
         </button>
       </form>
     </section>

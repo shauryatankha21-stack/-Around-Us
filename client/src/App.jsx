@@ -21,6 +21,7 @@ export default function App() {
   const toast = useToast();
 
   const {
+    games,
     filteredGames,
     counts,
     myGames,
@@ -36,6 +37,7 @@ export default function App() {
     setQuery,
     joinGame,
     leaveGame,
+    deleteGame,
     createGame,
     refresh,
   } = useGames();
@@ -47,6 +49,11 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [detailsGame, setDetailsGame] = useState(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Sync active modal game with refreshed games list
+  const activeDetailsGame = detailsGame
+    ? games.find((g) => g.id === detailsGame.id) || detailsGame
+    : null;
 
   // Profile button handler
   const handleProfileClick = useCallback(() => {
@@ -95,6 +102,16 @@ export default function App() {
     [isAuthenticated, leaveGame, toast]
   );
 
+  // Delete/Cancel activity (Host only)
+  const handleDelete = useCallback(
+    async (id) => {
+      const result = await deleteGame(id);
+      if (result?.message) toast(result.message);
+      if (detailsGame?.id === id) setDetailsGame(null);
+    },
+    [deleteGame, detailsGame, toast]
+  );
+
   // Create game handler
   const handleCreateGame = useCallback(
     async (data) => {
@@ -121,6 +138,7 @@ export default function App() {
           filteredGames={filteredGames}
           counts={counts}
           myGames={myGames}
+          currentUser={currentUser}
           category={category}
           setCategory={setCategory}
           scope={scope}
@@ -131,6 +149,7 @@ export default function App() {
           setQuery={setQuery}
           onJoin={handleJoin}
           onLeave={handleLeave}
+          onDelete={handleDelete}
           onCreateClick={handleCreateClick}
           onShowDetails={setDetailsGame}
         />
@@ -154,13 +173,15 @@ export default function App() {
       />
 
       <GameDetailsModal
-        isOpen={!!detailsGame}
+        isOpen={!!activeDetailsGame}
         onClose={() => setDetailsGame(null)}
-        game={detailsGame}
+        game={activeDetailsGame}
         counts={counts}
-        isMine={detailsGame ? myGames.has(detailsGame.id) : false}
+        isMine={activeDetailsGame ? myGames.has(activeDetailsGame.id) : false}
+        isHost={activeDetailsGame && currentUser ? activeDetailsGame.host_id === currentUser.id : false}
         onJoin={handleJoin}
         onLeave={handleLeave}
+        onDelete={handleDelete}
       />
 
       <ProfileModal

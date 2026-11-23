@@ -96,7 +96,7 @@ router.post('/', async (req, res) => {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
-  const { title, icon, category, place, scope, starts_at, max_players, min_age, experience_level, note } = req.body;
+  const { title, icon, category, place, scope, starts_at, max_players, min_age, experience_level, gender_preference, note } = req.body;
 
   const { data, error } = await supabaseAdmin
     .from('games')
@@ -112,6 +112,7 @@ router.post('/', async (req, res) => {
       max_players,
       min_age: min_age || 16,
       experience_level: experience_level || 'Any',
+      gender_preference: gender_preference || 'Any',
       note: note || 'Open to new players.',
     })
     .select()
@@ -160,6 +161,28 @@ router.post('/leave', async (req, res) => {
 
   if (error) return res.status(400).json({ error: error.message });
   res.json({ success: true });
+});
+
+// DELETE /api/games/:id — Delete a game (Host only)
+router.delete('/:id', async (req, res) => {
+  const userClient = getUserClient(req);
+  if (!userClient) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const { data: { user }, error: authError } = await userClient.auth.getUser();
+  if (authError || !user) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+
+  const { error } = await supabaseAdmin
+    .from('games')
+    .delete()
+    .eq('id', req.params.id)
+    .eq('host_id', user.id);
+
+  if (error) return res.status(400).json({ error: error.message });
+  res.json({ success: true, message: 'Game cancelled' });
 });
 
 module.exports = router;

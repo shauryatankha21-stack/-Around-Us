@@ -6,7 +6,7 @@ export default function Header({ onProfileClick }) {
   const { theme, toggleTheme } = useTheme();
 
   const displayName = profile?.name || currentUser?.user_metadata?.name || currentUser?.email?.split('@')[0] || 'Sign in';
-  const avatarLetter = currentUser ? (displayName[0] || 'A').toUpperCase() : 'A';
+  const avatarLetter = currentUser ? (displayName[0] || 'A').toUpperCase() : '👤';
 
   return (
     <header className="site-header">

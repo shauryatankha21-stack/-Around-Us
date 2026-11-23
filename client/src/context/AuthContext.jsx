@@ -89,7 +89,7 @@ export function AuthProvider({ children }) {
     if (!data.session) return { error: null, needsConfirmation: true };
 
     setCurrentUser(data.user);
-    setProfile({ name, college, city, gender: gender || 'Any' });
+    setProfile({ name, college, city, date_of_birth, gender: gender || 'Any' });
     return { error: null, needsConfirmation: false };
   }, []);
 
@@ -112,7 +112,9 @@ export function AuthProvider({ children }) {
 
   const signOut = useCallback(async () => {
     if (!supabase) {
-      localStorage.removeItem(STORE_KEY);
+      const data = readLocal();
+      data.profile = null;
+      writeLocal(data);
       setCurrentUser(null);
       setProfile(null);
       return;
