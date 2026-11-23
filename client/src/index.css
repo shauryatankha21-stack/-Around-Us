@@ -1167,3 +1167,17 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   z-index: 1;
 }
+
+/* Mobile: drop custom icons entirely — let iOS/Android use their native picker UI */
+@media (max-width: 768px) {
+  input[type="date"],
+  input[type="time"] {
+    background-image: none !important;
+    padding-right: 14px !important;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+}
