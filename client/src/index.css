@@ -1168,14 +1168,8 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   z-index: 1;
 }
 
-/* Mobile: drop custom icons entirely — let iOS/Android use their native picker UI */
+/* Mobile: hide the native tiling picker indicator but keep the custom SVG icon */
 @media (max-width: 768px) {
-  input[type="date"],
-  input[type="time"] {
-    background-image: none !important;
-    padding-right: 14px !important;
-  }
-
   input[type="date"]::-webkit-calendar-picker-indicator,
   input[type="time"]::-webkit-calendar-picker-indicator {
     display: none;
