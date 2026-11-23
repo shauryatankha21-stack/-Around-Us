@@ -79,18 +79,30 @@ export function AuthProvider({ children }) {
       return { error: null, needsConfirmation: false };
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name, college, city, date_of_birth, gender: gender || 'Any' } },
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name, college, city, date_of_birth, gender: gender || 'Any' } },
+      });
 
-    if (error) return { error: error.message, needsConfirmation: false };
-    if (!data.session) return { error: null, needsConfirmation: true };
+      if (error) {
+        const msg = error.message.toLowerCase().includes('fetch')
+          ? 'Cannot reach Supabase database. Please check if your Supabase project is active or paused in the dashboard.'
+          : error.message;
+        return { error: msg, needsConfirmation: false };
+      }
+      if (!data.session) return { error: null, needsConfirmation: true };
 
-    setCurrentUser(data.user);
-    setProfile({ name, college, city, date_of_birth, gender: gender || 'Any' });
-    return { error: null, needsConfirmation: false };
+      setCurrentUser(data.user);
+      setProfile({ name, college, city, date_of_birth, gender: gender || 'Any' });
+      return { error: null, needsConfirmation: false };
+    } catch (err) {
+      return {
+        error: 'Cannot reach Supabase database. Please check if your Supabase project is active or paused in the dashboard.',
+        needsConfirmation: false,
+      };
+    }
   }, []);
 
   const signIn = useCallback(async ({ email, password }) => {
@@ -103,11 +115,22 @@ export function AuthProvider({ children }) {
       return { error: null };
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        const msg = error.message.toLowerCase().includes('fetch')
+          ? 'Cannot reach Supabase database. Please check if your Supabase project is active or paused in the dashboard.'
+          : error.message;
+        return { error: msg };
+      }
 
-    setCurrentUser(data.user);
-    return { error: null };
+      setCurrentUser(data.user);
+      return { error: null };
+    } catch (err) {
+      return {
+        error: 'Cannot reach Supabase database. Please check if your Supabase project is active or paused in the dashboard.',
+      };
+    }
   }, []);
 
   const signOut = useCallback(async () => {
