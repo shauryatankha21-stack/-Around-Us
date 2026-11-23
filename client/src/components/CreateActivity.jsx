@@ -154,24 +154,30 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         <div className="two">
           <label>
             Date
-            <input
-              id="date"
-              type="date"
-              min={todayStr}
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
+            <div className="input-icon-wrap">
+              <input
+                id="date"
+                type="date"
+                min={todayStr}
+                required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+              <span className="field-icon" aria-hidden="true">📅</span>
+            </div>
           </label>
           <label>
             Time
-            <input
-              id="timeInput"
-              type="time"
-              required
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-            />
+            <div className="input-icon-wrap">
+              <input
+                id="timeInput"
+                type="time"
+                required
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+              <span className="field-icon" aria-hidden="true">🕐</span>
+            </div>
           </label>
         </div>
 

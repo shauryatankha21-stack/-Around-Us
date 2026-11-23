@@ -152,14 +152,17 @@ export default function AuthModal({ isOpen, onClose, toast }) {
             </label>
             <label>
               Date of Birth
-              <input
-                id="authDob"
-                type="date"
-                required
-                value={dob}
-                max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
-                onChange={(e) => setDob(e.target.value)}
-              />
+              <div className="input-icon-wrap">
+                <input
+                  id="authDob"
+                  type="date"
+                  required
+                  value={dob}
+                  max={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+                  onChange={(e) => setDob(e.target.value)}
+                />
+                <span className="field-icon" aria-hidden="true">📅</span>
+              </div>
             </label>
             <label>
               Gender
