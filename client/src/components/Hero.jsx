@@ -1,9 +1,9 @@
 export default function Hero({ heroGame, counts, onCreateClick, onDetailsClick }) {
-  const joined = heroGame ? (counts.get(heroGame.id) || 0) : 8;
-  const maxPlayers = heroGame?.max_players || 12;
+  const joined = heroGame ? (counts.get(heroGame.id) || 0) : 0;
+  const maxPlayers = heroGame?.max_players || 0;
   const spotsLeft = Math.max(0, maxPlayers - joined);
-  const progress = Math.min(100, (joined / maxPlayers) * 100);
-  const isLive = heroGame ? heroGame.status === 'live' : true;
+  const progress = heroGame ? Math.min(100, (joined / maxPlayers) * 100) : 0;
+  const isLive = heroGame?.status === 'live';
 
   let whenText = 'Starting now';
   if (heroGame?.starts_at) {
@@ -55,29 +55,51 @@ export default function Hero({ heroGame, counts, onCreateClick, onDetailsClick }
         <div className="float f3">🃏</div>
 
         <div className="spotlight">
-          <div className="spot-top">
-            <span className={`live-tag ${isLive ? '' : 'upcoming'}`}>
-              {isLive ? '● LIVE' : 'UPCOMING'}
-            </span>
-            <span>{heroGame?.scope === 'city' ? 'City' : 'College'}</span>
-          </div>
-          <div className="big-icon">{heroGame?.icon || '🏀'}</div>
-          <h3>{heroGame?.title || 'Basketball'}</h3>
-          <p>{heroGame ? `${heroGame.place} · ${whenText}` : 'College Court · Starting now'}</p>
-          <div className="numbers">
-            <strong id="heroPlayers">
-              {joined}/{maxPlayers}
-            </strong>
-            <b id="heroLeft">
-              {spotsLeft ? `${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left` : 'Full'}
-            </b>
-          </div>
-          <div className="track">
-            <i id="heroProgress" style={{ width: `${progress}%` }}></i>
-          </div>
-          <button type="button" id="heroDetailsBtn" onClick={onDetailsClick}>
-            See activity <span>→</span>
-          </button>
+          {heroGame ? (
+            <>
+              <div className="spot-top">
+                <span className={`live-tag ${isLive ? '' : 'upcoming'}`}>
+                  {isLive ? '● LIVE' : 'UPCOMING'}
+                </span>
+                <span>{heroGame.scope === 'city' ? 'City' : 'College'}</span>
+              </div>
+              <div className="big-icon">{heroGame.icon}</div>
+              <h3>{heroGame.title}</h3>
+              <p>{heroGame.place} · {whenText}</p>
+              <div className="numbers">
+                <strong id="heroPlayers">{joined}/{maxPlayers}</strong>
+                <b id="heroLeft">
+                  {spotsLeft ? `${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left` : 'Full'}
+                </b>
+              </div>
+              <div className="track">
+                <i id="heroProgress" style={{ width: `${progress}%` }}></i>
+              </div>
+              <button type="button" id="heroDetailsBtn" onClick={onDetailsClick}>
+                See activity <span>→</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="spot-top">
+                <span className="live-tag upcoming">NO GAMES YET</span>
+                <span>Be first</span>
+              </div>
+              <div className="big-icon">🎮</div>
+              <h3>No games yet</h3>
+              <p>Create the first activity in your area</p>
+              <div className="numbers">
+                <strong id="heroPlayers">—</strong>
+                <b id="heroLeft">open spots</b>
+              </div>
+              <div className="track">
+                <i id="heroProgress" style={{ width: '0%' }}></i>
+              </div>
+              <button type="button" id="heroDetailsBtn" onClick={onCreateClick}>
+                Create a game <span>→</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </section>
