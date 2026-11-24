@@ -39,6 +39,9 @@ export default function GameCard({ game, counts, isMine, isHost, onJoin, onLeave
           {game.scope === 'college' && game.college && (
             <span className="badge college" title={game.college}>🎓 {game.college}</span>
           )}
+          {game.scope === 'city' && game.city && (
+            <span className="badge city" title={game.city}>📍 {game.city}</span>
+          )}
           {isHost && <span className="badge host">👑 HOST</span>}
           <span className={`badge ${isLive ? 'live' : ''}`}>
             {isLive ? '● LIVE' : 'UPCOMING'}
@@ -47,7 +50,7 @@ export default function GameCard({ game, counts, isMine, isHost, onJoin, onLeave
       </div>
 
       <h3>{game.title}</h3>
-      <div className="meta">⌖ {game.place}{game.scope === 'college' && game.college ? ` · ${game.college}` : ''}</div>
+      <div className="meta">⌖ {game.place}{game.scope === 'college' && game.college ? ` · ${game.college}` : game.scope === 'city' && game.city ? ` · ${game.city}` : ''}</div>
       <div className="meta">◷ {when}</div>
       <div className="meta">✦ {game.experience_level || 'Any'} level</div>
       <div className="meta">🎂 Min Age: {game.min_age || 16}+</div>

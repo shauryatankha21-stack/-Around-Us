@@ -205,7 +205,7 @@ export function useGames() {
       const effectiveStatus = getGameStatus(g);
       if (time !== 'all' && effectiveStatus !== time) return false;
       if (query) {
-        const searchPool = [g.title, g.place, g.college, g.note, g.category, g.experience_level].filter(Boolean).join(' ').toLowerCase();
+        const searchPool = [g.title, g.place, g.college, g.city, g.note, g.category, g.experience_level].filter(Boolean).join(' ').toLowerCase();
         if (!searchPool.includes(query.trim().toLowerCase())) return false;
       }
       return true;
@@ -349,12 +349,13 @@ export function useGames() {
 
   // Create game
   const createGame = useCallback(
-    async ({ title, icon, categoryValue, place, scopeValue, college, startsAt, maxPlayers, minAge, experienceLevel, genderPreference, note }) => {
+    async ({ title, icon, categoryValue, place, scopeValue, college, city, startsAt, maxPlayers, minAge, experienceLevel, genderPreference, note }) => {
       if (!currentUser) {
         return { success: false, message: 'Must be signed in' };
       }
 
       const collegeValue = scopeValue === 'college' ? (college?.trim() || null) : null;
+      const cityValue = scopeValue === 'city' ? (city?.trim() || null) : null;
 
       if (!supabase) {
         const data = readLocal();
@@ -367,6 +368,7 @@ export function useGames() {
           place,
           scope: scopeValue,
           college: collegeValue,
+          city: cityValue,
           starts_at: startsAt,
           status: getGameStatus({ starts_at: startsAt }),
           max_players: maxPlayers,
@@ -407,17 +409,22 @@ export function useGames() {
         payload.college = collegeValue;
       }
 
+      if (cityValue) {
+        payload.city = cityValue;
+      }
+
       let { data, error } = await supabase
         .from('games')
         .insert(payload)
         .select()
         .single();
 
-      // Graceful fallback if database column 'college' does not exist yet
-      if (error && (error.code === '42703' || error.message?.includes('college'))) {
-        console.warn('games.college column not found in database yet, falling back to insert without it.');
+      // Graceful fallback if database column 'college' or 'city' does not exist yet
+      if (error && (error.code === '42703' || error.message?.includes('college') || error.message?.includes('city'))) {
+        console.warn('games column not found in database yet, falling back to insert without it.');
         const fallbackPayload = { ...payload };
         delete fallbackPayload.college;
+        delete fallbackPayload.city;
         const retry = await supabase.from('games').insert(fallbackPayload).select().single();
         data = retry.data;
         error = retry.error;

@@ -86,6 +86,7 @@ create table if not exists public.games (
 
 -- Migration for existing tables:
 alter table public.games add column if not exists college text;
+alter table public.games add column if not exists city text;
 
 alter table public.games enable row level security;
 
