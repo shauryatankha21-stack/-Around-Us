@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from './Modal';
 import { useAuth } from '../context/AuthContext';
 import CollegeInput from './CollegeInput';
+import CityInput from './CityInput';
 
 export default function AuthModal({ isOpen, onClose, toast }) {
   const { signUp, signIn } = useAuth();
@@ -142,12 +143,11 @@ export default function AuthModal({ isOpen, onClose, toast }) {
             </label>
             <label>
               City
-              <input
+              <CityInput
                 id="authCity"
-                autoComplete="address-level2"
-                placeholder="Your city"
+                placeholder="Type to search city (e.g. Delhi, Bengaluru)..."
                 value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={setCity}
               />
             </label>
             <label>

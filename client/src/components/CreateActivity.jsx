@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CollegeInput from './CollegeInput';
+import CityInput from './CityInput';
 
 const ACTIVITIES = [
   { label: '🏀 Basketball', title: 'Basketball', icon: '🏀', category: 'sports' },
@@ -27,6 +28,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [place, setPlace] = useState('');
   const [area, setArea] = useState('college');
   const [college, setCollege] = useState('');
+  const [city, setCity] = useState('');
   const [limit, setLimit] = useState(8);
   const [minAge, setMinAge] = useState(16);
   const [experience, setExperience] = useState('Any');
@@ -34,12 +36,15 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Auto-fill host's college from their profile if available
+  // Auto-fill host's college and city from their profile if available
   useEffect(() => {
     if (profile?.college && !college) {
       setCollege(profile.college);
     }
-  }, [profile?.college]);
+    if (profile?.city && !city) {
+      setCity(profile.city);
+    }
+  }, [profile?.college, profile?.city]);
 
   const now = new Date();
   const localYear = now.getFullYear();
@@ -57,6 +62,11 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
 
     if (area === 'college' && !college.trim()) {
       toast('Please choose or enter a college.');
+      return;
+    }
+
+    if (area === 'city' && !city.trim()) {
+      toast('Please choose or enter a city.');
       return;
     }
 
@@ -98,6 +108,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         place: place.trim(),
         scopeValue: area,
         college: area === 'college' ? college.trim() : null,
+        city: area === 'city' ? city.trim() : null,
         startsAt: scheduledDate.toISOString(),
         maxPlayers: limit,
         minAge,
@@ -120,6 +131,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         setActivityIdx(0);
         setArea('college');
         setCollege(profile?.college || '');
+        setCity(profile?.city || '');
         // Scroll to discover
         document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' });
       } else {
@@ -239,6 +251,19 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
               onChange={setCollege}
               placeholder="Type to search college (e.g. Manipal, IIT, BITS)..."
               required={area === 'college'}
+            />
+          </label>
+        )}
+
+        {area === 'city' && (
+          <label>
+            City
+            <CityInput
+              id="createCity"
+              value={city}
+              onChange={setCity}
+              placeholder="Type to search city (e.g. Delhi, Bengaluru, Mumbai)..."
+              required={area === 'city'}
             />
           </label>
         )}

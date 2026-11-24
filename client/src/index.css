@@ -1246,3 +1246,76 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   vertical-align: middle;
 }
 
+/* City Autocomplete Suggestions */
+.city-autocomplete-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.city-suggestions-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--modal-bg, #18181b);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 120;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  margin: 0;
+  list-style: none;
+  backdrop-filter: blur(16px);
+}
+
+.city-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.city-suggestion-item:hover,
+.city-suggestion-item.active {
+  background: var(--card-hover);
+  color: var(--accent);
+}
+
+.city-item-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.city-item-text {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge.city {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
+}
+

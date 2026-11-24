@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useAuth } from '../context/AuthContext';
 import CollegeInput from './CollegeInput';
+import CityInput from './CityInput';
 
 function calculateAge(dobString) {
   if (!dobString) return null;
@@ -196,11 +197,11 @@ export default function ProfileModal({ isOpen, onClose, toast }) {
 
           <label>
             City
-            <input
+            <CityInput
               id="editCity"
               value={city}
-              placeholder="Your City"
-              onChange={(e) => setCity(e.target.value)}
+              placeholder="Type to search city (e.g. Delhi, Bengaluru)..."
+              onChange={setCity}
             />
           </label>
 
