@@ -18,6 +18,35 @@ const ACTIVITIES = [
   { label: '✨ Others', title: 'Others', icon: '✨', category: 'other' },
 ];
 
+function format12Hour(timeStr) {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return '';
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m} ${period}`;
+}
+
+function switchPeriod(currentTime, targetPeriod) {
+  if (!currentTime) {
+    return targetPeriod === 'PM' ? '17:00' : '09:00';
+  }
+  const parts = currentTime.split(':');
+  let h = parseInt(parts[0], 10);
+  const m = parts[1] || '00';
+  if (isNaN(h)) return targetPeriod === 'PM' ? '17:00' : '09:00';
+
+  const isPm = h >= 12;
+  if (targetPeriod === 'PM' && !isPm) {
+    h = (h % 12) + 12;
+  } else if (targetPeriod === 'AM' && isPm) {
+    h = h % 12;
+  }
+  return `${String(h).padStart(2, '0')}:${m}`;
+}
+
 export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const { isAuthenticated, profile } = useAuth();
   const formRef = useRef(null);
@@ -51,6 +80,12 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const localMonth = String(now.getMonth() + 1).padStart(2, '0');
   const localDay = String(now.getDate()).padStart(2, '0');
   const todayStr = `${localYear}-${localMonth}-${localDay}`;
+
+  const currentPeriod = time ? (parseInt(time.split(':')[0], 10) >= 12 ? 'PM' : 'AM') : null;
+
+  function handlePeriodChange(target) {
+    setTime(switchPeriod(time, target));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -195,16 +230,43 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
             </div>
           </label>
           <label>
-            Time
-            <div className="input-icon-wrap">
-              <input
-                id="timeInput"
-                type="time"
-                required
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-              <span className="field-icon" aria-hidden="true">🕐</span>
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Time</span>
+              {time && (
+                <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 800 }}>
+                  {format12Hour(time)}
+                </span>
+              )}
+            </span>
+            <div className="time-picker-row">
+              <div className="input-icon-wrap time-input-wrap">
+                <input
+                  id="timeInput"
+                  type="time"
+                  required
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                />
+                <span className="field-icon" aria-hidden="true">🕐</span>
+              </div>
+              <div className="ampm-toggle" role="group" aria-label="Select AM or PM">
+                <button
+                  type="button"
+                  className={`ampm-btn ${currentPeriod === 'AM' ? 'active' : ''}`}
+                  onClick={() => handlePeriodChange('AM')}
+                  title="Switch to AM (Morning)"
+                >
+                  AM
+                </button>
+                <button
+                  type="button"
+                  className={`ampm-btn ${currentPeriod === 'PM' ? 'active' : ''}`}
+                  onClick={() => handlePeriodChange('PM')}
+                  title="Switch to PM (Afternoon / Evening)"
+                >
+                  PM
+                </button>
+              </div>
             </div>
           </label>
         </div>
