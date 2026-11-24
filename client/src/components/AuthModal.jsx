@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal';
 import { useAuth } from '../context/AuthContext';
+import CollegeInput from './CollegeInput';
 
 export default function AuthModal({ isOpen, onClose, toast }) {
   const { signUp, signIn } = useAuth();
@@ -132,12 +133,11 @@ export default function AuthModal({ isOpen, onClose, toast }) {
             </label>
             <label>
               College
-              <input
+              <CollegeInput
                 id="authCollege"
-                autoComplete="organization"
-                placeholder="Your college"
+                placeholder="Type to search college (e.g. Manipal)..."
                 value={college}
-                onChange={(e) => setCollege(e.target.value)}
+                onChange={setCollege}
               />
             </label>
             <label>

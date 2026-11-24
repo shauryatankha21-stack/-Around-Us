@@ -205,7 +205,7 @@ export function useGames() {
       const effectiveStatus = getGameStatus(g);
       if (time !== 'all' && effectiveStatus !== time) return false;
       if (query) {
-        const searchPool = [g.title, g.place, g.note, g.category, g.experience_level].filter(Boolean).join(' ').toLowerCase();
+        const searchPool = [g.title, g.place, g.college, g.note, g.category, g.experience_level].filter(Boolean).join(' ').toLowerCase();
         if (!searchPool.includes(query.trim().toLowerCase())) return false;
       }
       return true;
@@ -349,10 +349,12 @@ export function useGames() {
 
   // Create game
   const createGame = useCallback(
-    async ({ title, icon, categoryValue, place, scopeValue, startsAt, maxPlayers, minAge, experienceLevel, genderPreference, note }) => {
+    async ({ title, icon, categoryValue, place, scopeValue, college, startsAt, maxPlayers, minAge, experienceLevel, genderPreference, note }) => {
       if (!currentUser) {
         return { success: false, message: 'Must be signed in' };
       }
+
+      const collegeValue = scopeValue === 'college' ? (college?.trim() || null) : null;
 
       if (!supabase) {
         const data = readLocal();
@@ -364,6 +366,7 @@ export function useGames() {
           category: categoryValue,
           place,
           scope: scopeValue,
+          college: collegeValue,
           starts_at: startsAt,
           status: getGameStatus({ starts_at: startsAt }),
           max_players: maxPlayers,
@@ -384,25 +387,41 @@ export function useGames() {
         return { success: true, message: `${title} published! You are the first player.` };
       }
 
-      const { data, error } = await supabase
+      const payload = {
+        host_id: currentUser.id,
+        title,
+        icon,
+        category: categoryValue,
+        place,
+        scope: scopeValue,
+        starts_at: startsAt,
+        status: 'upcoming',
+        max_players: maxPlayers,
+        min_age: minAge,
+        experience_level: experienceLevel || 'Any',
+        gender_preference: genderPreference || 'Any',
+        note: note || 'Open to new players.',
+      };
+
+      if (collegeValue) {
+        payload.college = collegeValue;
+      }
+
+      let { data, error } = await supabase
         .from('games')
-        .insert({
-          host_id: currentUser.id,
-          title,
-          icon,
-          category: categoryValue,
-          place,
-          scope: scopeValue,
-          starts_at: startsAt,
-          status: 'upcoming',
-          max_players: maxPlayers,
-          min_age: minAge,
-          experience_level: experienceLevel || 'Any',
-          gender_preference: genderPreference || 'Any',
-          note: note || 'Open to new players.',
-        })
+        .insert(payload)
         .select()
         .single();
+
+      // Graceful fallback if database column 'college' does not exist yet
+      if (error && (error.code === '42703' || error.message?.includes('college'))) {
+        console.warn('games.college column not found in database yet, falling back to insert without it.');
+        const fallbackPayload = { ...payload };
+        delete fallbackPayload.college;
+        const retry = await supabase.from('games').insert(fallbackPayload).select().single();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (error) return { success: false, message: error.message };
 

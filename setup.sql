@@ -74,6 +74,7 @@ create table if not exists public.games (
   gender_preference text not null default 'Any' check (gender_preference in ('Any', 'Male', 'Female')),
   place text not null,
   scope text not null check (scope in ('college','city')),
+  college text,
   starts_at timestamptz not null,
   status text not null default 'upcoming' check (status in ('live','upcoming')),
   max_players integer not null check (max_players between 2 and 50),
@@ -82,6 +83,9 @@ create table if not exists public.games (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migration for existing tables:
+alter table public.games add column if not exists college text;
 
 alter table public.games enable row level security;
 

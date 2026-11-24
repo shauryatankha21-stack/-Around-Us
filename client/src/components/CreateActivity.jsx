@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import CollegeInput from './CollegeInput';
 
 const ACTIVITIES = [
   { label: '🏀 Basketball', title: 'Basketball', icon: '🏀', category: 'sports' },
@@ -17,7 +18,7 @@ const ACTIVITIES = [
 ];
 
 export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, profile } = useAuth();
   const formRef = useRef(null);
 
   const [activityIdx, setActivityIdx] = useState(0);
@@ -25,12 +26,20 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
   const [time, setTime] = useState('');
   const [place, setPlace] = useState('');
   const [area, setArea] = useState('college');
+  const [college, setCollege] = useState('');
   const [limit, setLimit] = useState(8);
   const [minAge, setMinAge] = useState(16);
   const [experience, setExperience] = useState('Any');
   const [genderPreference, setGenderPreference] = useState('Any');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Auto-fill host's college from their profile if available
+  useEffect(() => {
+    if (profile?.college && !college) {
+      setCollege(profile.college);
+    }
+  }, [profile?.college]);
 
   const now = new Date();
   const localYear = now.getFullYear();
@@ -43,6 +52,11 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
 
     if (!date || !time || !place.trim()) {
       toast('Fill in all required fields.');
+      return;
+    }
+
+    if (area === 'college' && !college.trim()) {
+      toast('Please choose or enter a college.');
       return;
     }
 
@@ -83,6 +97,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         categoryValue: activity.category,
         place: place.trim(),
         scopeValue: area,
+        college: area === 'college' ? college.trim() : null,
         startsAt: scheduledDate.toISOString(),
         maxPlayers: limit,
         minAge,
@@ -104,6 +119,7 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
         setGenderPreference('Any');
         setActivityIdx(0);
         setArea('college');
+        setCollege(profile?.college || '');
         // Scroll to discover
         document.getElementById('discover')?.scrollIntoView({ behavior: 'smooth' });
       } else {
@@ -213,6 +229,19 @@ export default function CreateActivity({ onCreateGame, onNeedAuth, toast }) {
             />
           </label>
         </div>
+
+        {area === 'college' && (
+          <label>
+            College / Campus
+            <CollegeInput
+              id="createCollege"
+              value={college}
+              onChange={setCollege}
+              placeholder="Type to search college (e.g. Manipal, IIT, BITS)..."
+              required={area === 'college'}
+            />
+          </label>
+        )}
 
         <div className="two">
           <label>

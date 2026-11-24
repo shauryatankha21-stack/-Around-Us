@@ -52,7 +52,7 @@ export default function GameDetailsModal({ isOpen, onClose, game, counts, isMine
         {game.icon} {game.title}
       </h2>
       <p>
-        ⌖ {game.place} ({game.scope === 'city' ? 'City' : 'College'})
+        ⌖ {game.place} ({game.scope === 'city' ? 'City' : (game.college ? `🎓 ${game.college}` : 'College')})
         <br />
         ◷ {when}
         <br />

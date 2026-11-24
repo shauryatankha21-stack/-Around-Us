@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { useAuth } from '../context/AuthContext';
+import CollegeInput from './CollegeInput';
 
 function calculateAge(dobString) {
   if (!dobString) return null;
@@ -185,11 +186,11 @@ export default function ProfileModal({ isOpen, onClose, toast }) {
 
           <label>
             College
-            <input
+            <CollegeInput
               id="editCollege"
               value={college}
-              placeholder="College / University"
-              onChange={(e) => setCollege(e.target.value)}
+              placeholder="Type to search college (e.g. Manipal)..."
+              onChange={setCollege}
             />
           </label>
 
