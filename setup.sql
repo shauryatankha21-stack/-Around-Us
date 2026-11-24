@@ -235,11 +235,12 @@ grant execute on function public.join_game(uuid) to authenticated;
 grant execute on function public.leave_game(uuid) to authenticated;
 grant execute on function public.get_game_counts() to anon, authenticated;
 
-grant select on public.games to anon, authenticated;
-grant select on public.profiles to anon, authenticated;
-grant insert, update on public.profiles to authenticated;
-grant select on public.game_players to anon, authenticated;
-grant delete on public.game_players to authenticated;
+grant select on public.games to anon;
+grant select, insert, update, delete on public.games to authenticated;
+grant select on public.profiles to anon;
+grant select, insert, update on public.profiles to authenticated;
+grant select on public.game_players to anon;
+grant select, insert, delete on public.game_players to authenticated;
 
 -- Enable realtime for the tables used by the app.
 alter table public.games replica identity full;
