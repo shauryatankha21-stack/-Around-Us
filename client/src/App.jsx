@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useGames } from './hooks/useGames';
 import { useRealtime } from './hooks/useRealtime';
@@ -50,6 +50,29 @@ export default function App() {
   const [detailsGame, setDetailsGame] = useState(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
+  // Handle booking link or QR code scan navigation
+  useEffect(() => {
+    if (typeof window === 'undefined' || !games || games.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const gameParam = params.get('game');
+    const bookingParam = params.get('booking');
+
+    if (gameParam || bookingParam) {
+      const match = games.find((g) => {
+        if (gameParam && g.id === gameParam) return true;
+        if (bookingParam) {
+          const cleanId = String(g.id).replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase();
+          return `AU-BK-${cleanId}` === bookingParam.toUpperCase();
+        }
+        return false;
+      });
+
+      if (match) {
+        setDetailsGame(match);
+      }
+    }
+  }, [games]);
+
   // Sync active modal game with refreshed games list
   const activeDetailsGame = detailsGame
     ? games.find((g) => g.id === detailsGame.id) || detailsGame
@@ -80,10 +103,11 @@ export default function App() {
       if (!isAuthenticated) {
         setAuthModalOpen(true);
         toast('Create your account to join a game.');
-        return;
+        return { success: false };
       }
       const result = await joinGame(id);
       if (result?.message) toast(result.message);
+      return result;
     },
     [isAuthenticated, joinGame, toast]
   );
@@ -182,6 +206,7 @@ export default function App() {
         onJoin={handleJoin}
         onLeave={handleLeave}
         onDelete={handleDelete}
+        currentUser={currentUser}
       />
 
       <ProfileModal

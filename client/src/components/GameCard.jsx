@@ -43,6 +43,7 @@ export default function GameCard({ game, counts, isMine, isHost, onJoin, onLeave
             <span className="badge city" title={game.city}>📍 {game.city}</span>
           )}
           {isHost && <span className="badge host">👑 HOST</span>}
+          {isMine && !isHost && <span className="badge booked" title="You are booked">🎟️ BOOKED</span>}
           <span className={`badge ${isLive ? 'live' : ''}`}>
             {isLive ? '● LIVE' : 'UPCOMING'}
           </span>
@@ -74,13 +75,18 @@ export default function GameCard({ game, counts, isMine, isHost, onJoin, onLeave
             ✕ Cancel
           </button>
           <button className="join" type="button" onClick={(e) => { e.stopPropagation(); onShowDetails(game); }}>
-            View details
+            🎟️ Host Pass
           </button>
         </div>
       ) : isMine ? (
-        <button className="join leave" type="button" onClick={(e) => { e.stopPropagation(); onLeave(game.id); }}>
-          ↩ Leave game
-        </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <button className="join leave" type="button" onClick={(e) => { e.stopPropagation(); onLeave(game.id); }}>
+            ↩ Leave game
+          </button>
+          <button className="join" type="button" onClick={(e) => { e.stopPropagation(); onShowDetails(game); }}>
+            🎟️ Booking Pass
+          </button>
+        </div>
       ) : (
         <button
           className="join"
